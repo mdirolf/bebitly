@@ -5,15 +5,30 @@ var urls = ["http://dirolf.com",
             "http://bit.ly",
             "http://bsonspec.org",
             "http://www.10gen.com",
-            "http://www.example.net"];
+            "http://www.example.net",
+            "http://www.youtube.com",
+            "http://www.apple.com",
+            "http://www.twitter.com/mdirolf",
+            "http://en.wikipedia.org",
+            "http://twitter.com",
+            "http://github.com",
+            "http://github.com/mdirolf",
+            "http://msn.com",
+            "http://foursquare.com",
+            "http://last.fm",
+            "http://craigslist.org",
+            "http://myspace.com",
+            "http://bing.com",
+            "http://ebay.com",
+            "http://en.wikipedia.org/wiki/MongoDB",
+            "http://en.wikipedia.org/wiki/BSON"];
 var hashes = [];
 var shorts = {};
 var longs = {};
 var current_url;
 var current_hash;
 var start = new Date();
-var task_start = new Date();
-var score;
+var score = 0;
 
 function opt(url) {
     return "<a href='#' onclick='javascript:handle_long(\"" + url + "\")'>" + url + "</a><br>";
@@ -52,11 +67,12 @@ function shorten () {
     current_url = urls[Math.floor(Math.random() * urls.length)];
     current_hash = null;
     $("#help").html("Shorten this:");
-    $("#url").html(current_url);
+    $("#url").html("<a href='" + current_url + "'>" + current_url + "</a>");
 }
 
 function task () {
-    task_start = new Date();
+    $("#error").html("");
+    start = new Date();
     var r = Math.random();
     if (hashes.length === 0 || r < 0.5) {
         shorten();
@@ -74,6 +90,21 @@ function added_short () {
     $("#average").html((sum / hashes.length).toFixed(2));
 }
 
+function update_score() {
+    $("#score").html(score.toFixed(2));
+}
+
+function fail (text) {
+    score = Math.min(score - 10, score * 0.75);
+    update_score();
+    $("#error").html(text);
+}
+
+function success (val) {
+    score += 100 / val;
+    update_score();
+}
+
 function handle_short (text) {
     if (!shorts[current_url]) {
         if (!longs[text]) {
@@ -81,22 +112,26 @@ function handle_short (text) {
             shorts[current_url] = text;
             longs[text] = current_url;
             added_short();
+            success(text.length);
             task();
         } else {
-            alert("repeat hash!");
+            fail("repeat hash");
         }
     } else if (text === shorts[current_url]) {
+        success(text.length);
         task();
     } else {
-        alert("wrong hash!");
+        fail("wrong hash");
     }
 }
 
 function handle_long (text) {
     if (text === longs[current_hash]) {
+        score += 10;
+        update_score();
         task();
     } else {
-        alert("wrong url!");
+        fail("wrong url");
     }
 }
 
@@ -125,10 +160,8 @@ function pad(s) {
 
 function timers () {
     var now = new Date();
-    var total = new Date(now.getTime() - start.getTime());
-    var task = new Date(now.getTime() - task_start.getTime());
-    $("#total_time").html(total.getMinutes() + ":" + pad(total.getSeconds()));
-    $("#task_time").html(task.getMinutes() + ":" + pad(task.getSeconds()));
+    var diff = new Date(now.getTime() - start.getTime());
+    $("#task_time").html(diff.getMinutes() + ":" + pad(diff.getSeconds()));
     setTimeout('timers()', 500);
 }
 
