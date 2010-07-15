@@ -27,8 +27,9 @@ var shorts = {};
 var longs = {};
 var current_url;
 var current_hash;
-var start = new Date();
+var start = (new Date()).getTime();
 var score = 0;
+var t;
 
 function opt(url) {
     return "<a href='#' onclick='javascript:handle_long(\"" + url + "\")'>" + url + "</a><br>";
@@ -70,8 +71,11 @@ function shorten () {
     $("#url").html("<a href='" + current_url + "'>" + current_url + "</a>");
 }
 
-function task () {
-    $("#error").html("");
+function task (keep_error) {
+    clearTimeout(t);
+    if (!keep_error) {
+        $("#error").html("");
+    }
     start = new Date();
     var r = Math.random();
     if (hashes.length === 0 || r < 0.5) {
@@ -79,6 +83,7 @@ function task () {
     } else {
         lengthen();
     }
+    t = setTimeout("timeout()", 4000);
 }
 
 function added_short () {
@@ -92,6 +97,11 @@ function added_short () {
 
 function update_score() {
     $("#score").html(score.toFixed(2));
+}
+
+function timeout () {
+    fail("504 timed out - gotta be quick");
+    task(true);
 }
 
 function fail (text) {
@@ -115,13 +125,13 @@ function handle_short (text) {
             success(text.length);
             task();
         } else {
-            fail("repeat hash");
+            fail("500 repeat hash");
         }
     } else if (text === shorts[current_url]) {
         success(text.length);
         task();
     } else {
-        fail("wrong hash");
+        fail("500 wrong hash");
     }
 }
 
@@ -131,7 +141,7 @@ function handle_long (text) {
         update_score();
         task();
     } else {
-        fail("wrong url");
+        fail("500 wrong url");
     }
 }
 
@@ -159,15 +169,14 @@ function pad(s) {
 }
 
 function timers () {
-    var now = new Date();
-    var diff = new Date(now.getTime() - start.getTime());
-    $("#task_time").html(diff.getMinutes() + ":" + pad(diff.getSeconds()));
-    setTimeout('timers()', 500);
+    var now = (new Date()).getTime();
+    $("#task_time").html(((now - start) / 1000.0).toFixed(2));
+    setTimeout('timers()', 10);
 }
 
 function init () {
     $("#text").keyup(handle_text);
-    setTimeout('timers()', 500);
+    setTimeout('timers()', 10);
     task();
 }
 
