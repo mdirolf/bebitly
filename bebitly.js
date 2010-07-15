@@ -174,10 +174,20 @@ function timers () {
     setTimeout('timers()', 10);
 }
 
+function begin (e) {
+    if (e.which == 32) {
+        $("body").keyup(function () {});
+        $("#intro").hide();
+        $("#game").show();
+        $("#text").keyup(handle_text);
+        setTimeout('timers()', 10);
+        task();
+    }
+}
+
 function init () {
-    $("#text").keyup(handle_text);
-    setTimeout('timers()', 10);
-    task();
+    $("#game").hide();
+    $("body").keyup(begin);
 }
 
 $(document).ready(init);
